@@ -82,3 +82,41 @@ def calculate_salary(employee_id: int, db: Session = Depends(get_db)):
         deduction_amount=deduction_amount,
         net_salary=net_salary
     )
+
+from sqlalchemy.sql import func
+
+@app.get("/metrics/country/{country}", response_model=schemas.MetricsCountryResponse)
+def get_metrics_by_country(country: str, db: Session = Depends(get_db)):
+    result = db.query(
+        func.min(models.Employee.gross_salary).label("min_salary"),
+        func.max(models.Employee.gross_salary).label("max_salary"),
+        func.avg(models.Employee.gross_salary).label("avg_salary")
+    ).filter(
+        func.lower(models.Employee.country) == country.lower()
+    ).first()
+
+    if not result or result.min_salary is None:
+        raise HTTPException(status_code=404, detail="No employees found for this country")
+
+    return schemas.MetricsCountryResponse(
+        country=country.title() if country.lower() != "us" and country.lower() != "usa" and country.lower() != "uk" else country.upper(),
+        min_salary=result.min_salary,
+        max_salary=result.max_salary,
+        avg_salary=result.avg_salary
+    )
+
+@app.get("/metrics/job-title/{job_title}", response_model=schemas.MetricsJobTitleResponse)
+def get_metrics_by_job_title(job_title: str, db: Session = Depends(get_db)):
+    result = db.query(
+        func.avg(models.Employee.gross_salary).label("avg_salary")
+    ).filter(
+        func.lower(models.Employee.job_title) == job_title.lower()
+    ).first()
+
+    if not result or result.avg_salary is None:
+        raise HTTPException(status_code=404, detail="No employees found for this job title")
+
+    return schemas.MetricsJobTitleResponse(
+        job_title=job_title.title(),
+        avg_salary=result.avg_salary
+    )
