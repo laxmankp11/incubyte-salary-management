@@ -67,4 +67,4 @@ As requested by the Kata requirements, here is the transparency layer regarding 
 - **Workflow**: 
   - Iterative `task.md` checklists and `implementation_plan.md` alignment before execution.
   - Test specifications were intentionally authored to fail with `404 Not Found` (since endpoints did not exist), followed immediately by the endpoint logic being injected via atomic `git commit` loops.
-  - The context and prompt were documented during `PROJECT_CONTEXT.md` generation to keep the AI focused on the kata requirements natively inside its workspace context.
+  - The prompt and methodology were documented locally to keep the AI focused on the kata requirements natively inside its workspace context.
