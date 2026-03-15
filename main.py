@@ -54,3 +54,31 @@ def delete_employee(employee_id: int, db: Session = Depends(get_db)):
     db.delete(db_employee)
     db.commit()
     return None
+
+@app.get("/employees/{employee_id}/salary", response_model=schemas.SalaryResponse)
+def calculate_salary(employee_id: int, db: Session = Depends(get_db)):
+    employee = db.query(models.Employee).filter(models.Employee.id == employee_id).first()
+    if employee is None:
+        raise HTTPException(status_code=404, detail="Employee not found")
+    
+    country = employee.country.lower()
+    gross = employee.gross_salary
+    
+    if country == "india":
+        deduction_pct = 10
+    elif country == "united states" or country == "us" or country == "usa":
+        deduction_pct = 12
+    else:
+        # Default for other countries
+        deduction_pct = 0
+        
+    deduction_amount = (gross * deduction_pct) / 100.0
+    net_salary = gross - deduction_amount
+    
+    return schemas.SalaryResponse(
+        id=employee.id,
+        gross_salary=gross,
+        deduction_percentage=f"{deduction_pct}%",
+        deduction_amount=deduction_amount,
+        net_salary=net_salary
+    )
